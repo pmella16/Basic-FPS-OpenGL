@@ -9,7 +9,7 @@
 GLFWwindow* window;
 
 // Include GLM
-#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 using namespace glm;
 
 #include <common/shader.hpp>
@@ -27,10 +27,19 @@ int main( void )
   // Create and compile our GLSL program from the shaders
   programID = LoadShaders("SimpleVertexShader.vertexshader", "SimpleFragmentShader.fragmentshader");
 
+  //Initialize MVP matrix
+  initializeMVPTransformation();
+
+  curr_x = 0;
+  curr_y = 0;
+  curr_z = 0;
+  curr_angle = 0;
 	//start animation loop until escape key is pressed
 	do{
-
-    updateAnimationLoop();
+		/*Update position of shapes by transformations or rotations depending on keys*/
+		updatePositionLoop();
+		/*DRAW THEM*/
+		updateAnimationLoop();
 
 	} // Check if the ESC key was pressed or the window was closed
 	while( glfwGetKey(window, GLFW_KEY_ESCAPE ) != GLFW_PRESS &&
@@ -45,6 +54,9 @@ int main( void )
 	return 0;
 }
 
+/*
+	UPDATE ANIMATION LOOP
+*/
 void updateAnimationLoop()
 {
   // Clear the screen
@@ -53,28 +65,66 @@ void updateAnimationLoop()
   // Use our shader
   glUseProgram(programID);
 
+  //Initialize MVP matrix
+  initializeMVPTransformation();
+  //Apply transformations of updatePositionLoop
+  MVP *= transformation;
+
+  //Set the matrix as the uniform
+  glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+
   // 1rst attribute buffer : vertices
   glEnableVertexAttribArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
   glVertexAttribPointer(
-    0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-    3,  // size
+	0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+    3,					// size
     GL_FLOAT,           // type
     GL_FALSE,           // normalized?
     0,                  // stride
     (void*)0            // array buffer offset
   );
-
+  
+  //2nd attribute buffer: colors
+  glEnableVertexAttribArray(1);
+  glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+  
   // Draw the triangle !
   glDrawArrays(GL_TRIANGLES, 0, vertexbuffer_size); // 3 indices starting at 0 -> 1 triangle
 
+  //Disable vertexAttribArray
   glDisableVertexAttribArray(0);
+  glDisableVertexAttribArray(1);
 
   // Swap buffers
   glfwSwapBuffers(window);
   glfwPollEvents();
 }
 
+/*
+	UPDATE POSITION OF ELEMENTS
+*/
+void updatePositionLoop() {
+
+	//Generate transformation matrix
+	if (glfwGetKey(window, GLFW_KEY_W)) curr_y += 0.01f;
+	else if (glfwGetKey(window, GLFW_KEY_S)) curr_y -= 0.01f;
+	else if (glfwGetKey(window, GLFW_KEY_A)) curr_x -= 0.01f;
+	else if (glfwGetKey(window, GLFW_KEY_D)) curr_x += 0.01f;
+	else if (glfwGetKey(window, GLFW_KEY_UP)) curr_z -= 0.01f;
+	else if (glfwGetKey(window, GLFW_KEY_DOWN)) curr_z += 0.01f;
+	else if (glfwGetKey(window, GLFW_KEY_R)) curr_angle += 0.01f;
+	else if (glfwGetKey(window, GLFW_KEY_E)) curr_angle -= 0.01f;
+	transformation[0][0] = 1.0; transformation[1][0] = 0.0; transformation[2][0] = 0.0; transformation[3][0] = curr_x;
+	transformation[0][1] = 0.0; transformation[1][1] = 1.0; transformation[2][1] = 0.0; transformation[3][1] = curr_y;
+	transformation[0][2] = 0.0; transformation[1][2] = 0.0; transformation[2][2] = 1.0; transformation[3][2] = curr_z;
+	transformation[0][3] = 0.0; transformation[1][3] = 0.0; transformation[2][3] = 0.0; transformation[3][3] = 1.0;
+
+}
+/*
+	INITIALIZE WINDOW
+*/
 bool initializeWindow()
 {
   // Initialise GLFW
@@ -92,7 +142,7 @@ bool initializeWindow()
   glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
   // Open a window and create its OpenGL context
-  window = glfwCreateWindow(1024, 768, "Tutorial 02 - Red triangle", NULL, NULL);
+  window = glfwCreateWindow(720, 480, "Testing graphics..", NULL, NULL);
   if (window == NULL) {
     fprintf(stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n");
     getchar();
@@ -118,22 +168,52 @@ bool initializeWindow()
   return true;
 }
 
+/*
+	INITIALIZE VERTEX BUFFER
+*/
 bool initializeVertexbuffer()
 {
+	//Generate vertices for triangles
   glGenVertexArrays(1, &VertexArrayID);
   glBindVertexArray(VertexArrayID);
 
-  vertexbuffer_size = 3;
+  vertexbuffer_size = 9;
   static const GLfloat g_vertex_buffer_data[] = {
-    -1.0f, -1.0f, 0.0f,
-    1.0f, -1.0f, 0.0f,
-    0.0f,  1.0f, 0.0f,
+    -0.5f, -1.0f, 0.0f,	//Triangulo inf. izq
+    -0.5f, 0.0f, 0.0f,
+	0.5f, -1.0f, 0.0f,
+	-0.5f, 0.0f, 0.0f, //Triangulo inf. der
+	0.5f, 0.0f, 0.0f,
+	0.5f, -1.0f, 0.0f,
+	-0.5f, 0.0f, 0.0f, //Triangulo sup.
+	0.5f, 0.0f, 0.0f,
+	0.0f, 0.4f, 0.0f
   };
 
   glGenBuffers(1, &vertexbuffer);
   glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
   glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
 
+  //Generate colors for vertices
+  glGenVertexArrays(1, &ColorVAOid);
+  glBindVertexArray(ColorVAOid);
+
+  static const GLfloat g_color_buffer_data[] = {
+	0.9f, 0.8f, 0.3f,	//Triangulo inf. izq
+	0.9f, 0.8f, 0.3f,
+	0.9f, 0.8f, 0.3f,
+	0.9f, 0.8f, 0.3f, //Triangulo inf. der
+	0.9f, 0.8f, 0.3f,
+	0.9f, 0.8f, 0.3f,
+	0.9f, 0.3f, 0.1f, //Triangulo sup.
+	0.9f, 0.3f, 0.1f,
+	0.9f, 0.3f, 0.1f,
+  };
+
+  glGenBuffers(1, &colorbuffer);
+  glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(g_color_buffer_data), g_color_buffer_data, GL_STATIC_DRAW);
+  
   return true;
 }
 
@@ -141,8 +221,40 @@ bool cleanupVertexbuffer()
 {
   // Cleanup VBO
   glDeleteBuffers(1, &vertexbuffer);
+  glDeleteBuffers(1, &colorbuffer);
+  glDeleteVertexArrays(1, &ColorVAOid);
   glDeleteVertexArrays(1, &VertexArrayID);
   return true;
+}
+
+bool initializeMVPTransformation()
+{
+	// Get a handle for our "MVP" uniform
+	GLuint MatrixIDnew = glGetUniformLocation(programID, "MVP");
+	MatrixID = MatrixIDnew;
+
+	// Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
+	glm::mat4 Projection = glm::perspective(glm::radians(60.0f), 4.0f / 3.0f, 0.1f, 100.0f);
+	//glm::mat4 Projection = glm::frustum(-2.0f, 2.0f, -2.0f, 2.0f, -2.0f, 2.0f);
+	// Camera matrix
+	float distance = 8;
+	glm::mat4 View = glm::lookAt(
+		glm::vec3(0, distance/2, distance), // Camera is at (0,4,8), in World Space
+		glm::vec3(0, 0, 0), // and looks at the origin
+		glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
+	);
+	// Model matrix : an identity matrix (model will be at the origin)
+	glm::mat4 Model = glm::mat4(1.0f);
+
+	Model = glm::rotate(Model, curr_angle, glm::vec3(0.0f, 1.0f, 0.0f));
+
+
+	// Our ModelViewProjection : multiplication of our 3 matrices
+	MVP = Projection * View * Model; // Remember, matrix multiplication is the other way around
+
+
+	return true;
+
 }
 
 bool closeWindow()
