@@ -8,25 +8,33 @@
 #include <glfw3.h>
 GLFWwindow* window;
 
+//
+#include <SOIL.h>
+
 // Include GLM
 #include <glm/gtc/matrix_transform.hpp>
 using namespace glm;
 
 #include <common/shader.hpp>
 
+
 int main( void )
 {
-  //Initialize window
-  bool windowInitialized = initializeWindow();
-  if (!windowInitialized) return -1;
+	  //Initialize window
+	 bool windowInitialized = initializeWindow();
+	 if (!windowInitialized) return -1;
 
-  //Initialize vertex buffer
-  bool vertexbufferInitialized = initializeVertexbuffer();
-  if (!vertexbufferInitialized) return -1;
+	 //Initialize map
+	 map.init();
 
-  // Create and compile our GLSL program from the shaders
-  programID = LoadShaders("SimpleVertexShader.vertexshader", "SimpleFragmentShader.fragmentshader");
+	 //Initialize vertex buffer
+	 bool vertexbufferInitialized = initializeVertexbuffer();
+	 if (!vertexbufferInitialized) return -1;
 
+	  // Create and compile our GLSL program from the shaders
+	  programID = LoadShaders("SimpleVertexShader.vertexshader", "SimpleFragmentShader.fragmentshader");
+
+<<<<<<< Updated upstream
   //Initialize MVP matrix
   initializeMVPTransformation();
 
@@ -34,6 +42,16 @@ int main( void )
   curr_y = 0;
   curr_z = 0;
   curr_angle = 0;
+=======
+	//Initialize MVP matrix
+	initializeMVPTransformation();
+
+	curr_x = 0;
+	 curr_y = 0;
+	 curr_z = 0;
+
+	 glEnable(GL_DEPTH_TEST);
+>>>>>>> Stashed changes
 	//start animation loop until escape key is pressed
 	do{
 		/*Update position of shapes by transformations or rotations depending on keys*/
@@ -46,11 +64,10 @@ int main( void )
 		   glfwWindowShouldClose(window) == 0 );
 
 	
-  //Cleanup and close window
-  cleanupVertexbuffer();
-  glDeleteProgram(programID);
+	//Cleanup and close window
+	cleanupVertexbuffer();
+	glDeleteProgram(programID);
 	closeWindow();
-  
 	return 0;
 }
 
@@ -60,7 +77,7 @@ int main( void )
 void updateAnimationLoop()
 {
   // Clear the screen
-  glClear(GL_COLOR_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
   // Use our shader
   glUseProgram(programID);
@@ -76,6 +93,7 @@ void updateAnimationLoop()
   // 1rst attribute buffer : vertices
   glEnableVertexAttribArray(0);
   glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+<<<<<<< Updated upstream
   glVertexAttribPointer(
 	0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
     3,					// size
@@ -89,6 +107,13 @@ void updateAnimationLoop()
   glEnableVertexAttribArray(1);
   glBindBuffer(GL_ARRAY_BUFFER, colorbuffer);
   glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+=======
+  glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), (void *)0);
+  
+  //2nd attribute buffer: colors
+  glEnableVertexAttribArray(1);
+  glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6*sizeof(float), (void *)(3*sizeof(float)));
+>>>>>>> Stashed changes
   
   // Draw the triangle !
   glDrawArrays(GL_TRIANGLES, 0, vertexbuffer_size); // 3 indices starting at 0 -> 1 triangle
@@ -177,6 +202,7 @@ bool initializeVertexbuffer()
   glGenVertexArrays(1, &VertexArrayID);
   glBindVertexArray(VertexArrayID);
 
+<<<<<<< Updated upstream
   vertexbuffer_size = 9;
   static const GLfloat g_vertex_buffer_data[] = {
     -0.5f, -1.0f, 0.0f,	//Triangulo inf. izq
@@ -190,9 +216,14 @@ bool initializeVertexbuffer()
 	0.0f, 0.4f, 0.0f
   };
 
+=======
+  std::vector<float> vertex = map.getPosCoords();
+  std::copy(vertex.begin(), vertex.end(), buffer);
+  vertexbuffer_size = (sizeof(buffer)/sizeof(buffer[0]));
+>>>>>>> Stashed changes
   glGenBuffers(1, &vertexbuffer);
   glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-  glBufferData(GL_ARRAY_BUFFER, sizeof(g_vertex_buffer_data), g_vertex_buffer_data, GL_STATIC_DRAW);
+  glBufferData(GL_ARRAY_BUFFER, sizeof(buffer), buffer, GL_STATIC_DRAW);
 
   //Generate colors for vertices
   glGenVertexArrays(1, &ColorVAOid);
@@ -239,8 +270,13 @@ bool initializeMVPTransformation()
 	// Camera matrix
 	float distance = 8;
 	glm::mat4 View = glm::lookAt(
+<<<<<<< Updated upstream
 		glm::vec3(0, distance/2, distance), // Camera is at (0,4,8), in World Space
 		glm::vec3(0, 0, 0), // and looks at the origin
+=======
+		camera, // Camera is at (0,4,8), in World Space
+		target, // and looks at the origin
+>>>>>>> Stashed changes
 		glm::vec3(0, 1, 0)  // Head is up (set to 0,-1,0 to look upside-down)
 	);
 	// Model matrix : an identity matrix (model will be at the origin)
@@ -252,7 +288,10 @@ bool initializeMVPTransformation()
 	// Our ModelViewProjection : multiplication of our 3 matrices
 	MVP = Projection * View * Model; // Remember, matrix multiplication is the other way around
 
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 	return true;
 
 }

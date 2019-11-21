@@ -8,8 +8,13 @@ out vec3 color;
 
 void main()
 {
+<<<<<<< Updated upstream
 
 	// Output color = selected in playground.cpp
 	color = outColor;
 
+=======
+	// Output color = selected in playground.cpp
+	color = outColor;
+>>>>>>> Stashed changes
 }

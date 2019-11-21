@@ -1,6 +1,6 @@
 # CMake entry point
 cmake_minimum_required (VERSION 3.0)
-project (OpenGL-Template)
+project (Showcase)
 
 find_package(OpenGL REQUIRED)
 
@@ -36,6 +36,7 @@ include_directories(
 	external/glfw-3.1.2/include/GLFW/
 	external/glm-0.9.7.1/
 	external/glew-1.13.0/include/
+	external/SOIL/src/
 	.
 )
 
@@ -43,6 +44,7 @@ set(ALL_LIBS
 	${OPENGL_LIBRARY}
 	glfw
 	GLEW_1130
+	SOIL
 )
 
 add_definitions(
@@ -56,7 +58,9 @@ add_definitions(
 # User playground
 add_executable(playground 
 	playground/playground.cpp
+	playground/map.cpp
 	playground/playground.h
+	playground/map.h
 	playground/SimpleFragmentShader.fragmentshader
 	playground/SimpleVertexShader.vertexshader
 	common/shader.cpp
