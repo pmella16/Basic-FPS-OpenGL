@@ -53,11 +53,10 @@ std::vector<float> Map::getPosCoords() {
 
 	for (int i = 0; i < n_houses; i++) {
 		std::vector<float> tmp = houses.at(i).getPosCoords();
-		for (int j = 0; j < tmp.size(); j++) {
+		for (unsigned int j = 0; j < tmp.size(); j++) {
 			result.push_back(tmp.at(j));
 		}
 	}
-	std::cout << "total en result: " << result.size() << "\n";
 	return result;
 }
 

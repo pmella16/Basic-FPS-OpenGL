@@ -6,12 +6,9 @@
 #include <GL/glew.h>
 // Include GLM
 #include <glm/glm.hpp>
-<<<<<<< Updated upstream
-=======
 
 //Map variable;
 Map map;
->>>>>>> Stashed changes
 
 //some global variables for handling the vertex buffer
 
@@ -30,25 +27,12 @@ glm::mat4 transformation;//additional transformation for the model
 float curr_x;
 float curr_y;
 float curr_z;
-float curr_angle;
-float r_axis_x=0;
-float r_axis_y=0;
-float r_axis_z=0;
-
-//global variables to handle the MVP matrix
-GLuint MatrixID;
-glm::mat4 MVP;
-glm::mat4 transformation;//additional transformation for the model
-
-float curr_x;
-float curr_y;
-float curr_z;
 float curr_angle = 0;
 float c_x=0;
-float c_y=-0.4;
+float c_y=(float)-0.4;
 float c_z=0.5;
 float t_x = 0;
-float t_y =-0.3;
+float t_y = (float)-0.3;
 float t_z = 0.0;
 glm::vec3 camera = vec3(c_x, c_y, -c_z);
 glm::vec3 target = vec3(t_x, t_y, -t_z);
