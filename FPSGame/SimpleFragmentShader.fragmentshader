@@ -1,13 +1,15 @@
 #version 330 core
 
 // Input from Vertex Shader
-in vec3 outColor;
+in vec2 uv_vertex;
 
 // Ouput data
 out vec3 color;
 
+// Texture
+uniform sampler2D text;
+
 void main()
 {
-	// Output color = selected in playground.cpp
-	color = outColor;
+	color = texture(text, uv_vertex).rgb;
 }

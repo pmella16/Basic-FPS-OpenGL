@@ -55,23 +55,28 @@ add_definitions(
 	-D_CRT_SECURE_NO_WARNINGS
 )
 
-# User playground
-add_executable(playground 
-	playground/playground.cpp
-	playground/map.cpp
-	playground/playground.h
-	playground/map.h
-	playground/SimpleFragmentShader.fragmentshader
-	playground/SimpleVertexShader.vertexshader
+# User FPSGame
+add_executable(FPSGame 
+	FPSGame/FPSGame.cpp
+	FPSGame/map.cpp
+	FPSGame/FPSGame.h
+	FPSGame/map.h
+	FPSGame/SimpleFragmentShader.fragmentshader
+	FPSGame/SimpleVertexShader.vertexshader
 	common/shader.cpp
 	common/shader.hpp
+	common/objloader.cpp
+	common/objloader.hpp
+	common/texture.cpp
+	common/texture.hpp
+	
 )
-target_link_libraries(playground
+target_link_libraries(FPSGame
 	${ALL_LIBS}
 )
 # Xcode and Visual working directories
-set_target_properties(playground PROPERTIES XCODE_ATTRIBUTE_CONFIGURATION_BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/playground/")
-create_target_launcher(playground WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/playground/")
+set_target_properties(FPSGame PROPERTIES XCODE_ATTRIBUTE_CONFIGURATION_BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/FPSGame/")
+create_target_launcher(FPSGame WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/FPSGame/")
 
 SOURCE_GROUP(common REGULAR_EXPRESSION ".*/common/.*" )
 SOURCE_GROUP(shaders REGULAR_EXPRESSION ".*/.*shader$" )
@@ -79,8 +84,8 @@ SOURCE_GROUP(shaders REGULAR_EXPRESSION ".*/.*shader$" )
 if (NOT ${CMAKE_GENERATOR} MATCHES "Xcode" )
 
 add_custom_command(
-   TARGET playground POST_BUILD
-   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/playground${CMAKE_EXECUTABLE_SUFFIX}" "${CMAKE_CURRENT_SOURCE_DIR}/playground/"
+   TARGET FPSGame POST_BUILD
+   COMMAND ${CMAKE_COMMAND} -E copy "${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_CFG_INTDIR}/FPSGame${CMAKE_EXECUTABLE_SUFFIX}" "${CMAKE_CURRENT_SOURCE_DIR}/FPSGame/"
    )
 
 
