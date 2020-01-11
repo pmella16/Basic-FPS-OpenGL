@@ -9,16 +9,22 @@
 
 //Map variable;
 //Initialize map
-std::string objpath = "textures/mapv1.obj";
+std::string mappath = "textures/mapv1.obj";
 std::string textpath = "textures/texture.bmp";
+std::string sunpath = "textures/sun.obj";
 Map map;
 
-//some global variables for handling the vertex buffer
+//Global variables for handling the map's buffers
 GLuint vertexbuffer;
 GLuint VertexArrayID;
 GLuint vertexbuffer_size;
 GLuint colorbuffer;
-GLuint ColorVAOid;
+
+//Global variables for handling the sun around the map's buffers
+GLuint sun_vertexbuffer;
+GLuint sun_VertexArrayID;
+GLuint sun_vertexbuffer_size;
+GLuint sun_colorID;
 
 //global variables to handle the MVP matrix
 GLuint MatrixID;
@@ -26,6 +32,12 @@ glm::mat4 MVP;
 glm::mat4 Projection;
 glm::mat4 View;
 glm::mat4 Model;
+
+//Camera position
+GLuint cameraPosID;
+
+//Sun position
+GLuint sunPosID;
 
 //Variables to recreate movement
 float yaw = 0.0f;  // horizontal angle : toward -Z
@@ -43,6 +55,9 @@ double oldTime;
 
 //program ID of the shaders, required for handling the shaders with OpenGL
 GLuint programID;
+
+//Shader for the sun
+GLuint sunShaderID;
 
 int main( void ); //<<< main function, called at startup
 void updateAnimationLoop(); //<<< updates the animation loop

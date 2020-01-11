@@ -61,8 +61,10 @@ add_executable(FPSGame
 	FPSGame/map.cpp
 	FPSGame/FPSGame.h
 	FPSGame/map.h
-	FPSGame/SimpleFragmentShader.fragmentshader
-	FPSGame/SimpleVertexShader.vertexshader
+	FPSGame/MapFragmentShader.fragmentshader
+	FPSGame/MapVertexShader.vertexshader
+	FPSGame/SunFragmentShader.fragmentshader
+	FPSGame/SunVertexShader.vertexshader
 	common/shader.cpp
 	common/shader.hpp
 	common/objloader.cpp

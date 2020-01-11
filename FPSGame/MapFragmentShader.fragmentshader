@@ -1,0 +1,49 @@
+#version 330 core
+
+// Input from Vertex Shader
+in vec2 uv_vertex;
+in vec3 surfaceNormals;
+in vec3 fragmentPosition;
+
+// Ouput data
+out vec3 color;
+
+// Texture
+uniform sampler2D text;
+uniform vec3 cameraPos;
+uniform vec3 lightPosition;
+
+void main()
+{
+	//LIGHTING FROM THE SUN
+	//Light position and color for diffuse and specular shading
+	vec3 lightColor = normalize(vec3(255.0, 230.0, 180.0));
+	
+	//Calculations on light position relative to the fragment's position
+	vec3 norm = normalize(surfaceNormals);
+	vec3 lightDirection = normalize(lightPosition - fragmentPosition);
+
+	//Calculating on the viewer's position to the fragment's position for specular lighting
+	vec3 viewDirection = normalize(cameraPos - fragmentPosition);
+	vec3 reflectDirection = reflect(-lightDirection, norm);		//Calculte the reflection from incoming light
+
+	//Calculating the intensity of the spectular lighting
+	float specularIntensity = 0.5;
+	float specularFactor = pow(max(dot(viewDirection, reflectDirection), 0.0), 64);
+	vec3 specularLighting = specularIntensity * specularFactor * lightColor;
+
+	//Calculating the intensity of diffuse lighting to the fragment
+	float diffuseFactor = max(dot(norm, lightDirection), 0.0);
+	vec3 diffuseLighting = diffuseFactor * lightColor;
+
+	//Ambient lighting 
+	float ambientIntensity = 0.3;
+
+	//Apply ambient intensity to the color of surface
+	vec3 ambient = ambientIntensity * lightColor;
+
+	//Apply the specular and diffuse lightings to the ambient lighting
+	color = (ambient + diffuseLighting + specularLighting) * texture(text, uv_vertex).rgb;
+	
+
+}

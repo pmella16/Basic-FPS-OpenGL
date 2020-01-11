@@ -24,14 +24,17 @@ int main(void)
 	if (!windowInitialized) return -1;
 
 	// Map initialization		initialize before calling vertex buffer, init loads the obj and .bmp objects and fills the data
-	map.init(objpath, textpath);
+	map.init(mappath, textpath, sunpath);
 
 	//Initialize vertex buffer
 	bool vertexbufferInitialized = initializeVertexbuffer();
 	if (!vertexbufferInitialized) return -1;
 
 	// Create and compile our GLSL program from the shaders
-	programID = LoadShaders("SimpleVertexShader.vertexshader", "SimpleFragmentShader.fragmentshader");
+	programID = LoadShaders("MapVertexShader.vertexshader", "MapFragmentShader.fragmentshader");
+
+	// Create and compile sun shader
+	sunShaderID = LoadShaders("SunVertexShader.vertexshader", "SunFragmentShader.fragmentshader");
 
 	//Initialize MVP matrix
 	initializeMVPTransformation();
@@ -72,6 +75,13 @@ void updateAnimationLoop()
 	//Set the matrix as the uniform
 	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
 
+	//Set the vector of the position of the camera in world space
+	GLfloat cameraPosition[] = { curr_x, curr_y, curr_z };
+	glUniform3fv(cameraPosID, 1, &cameraPosition[0]);
+
+	//Set the uniform vector for sun position
+	glUniform3fv(sunPosID, 1, &map.getSunPosition()[0]);
+
 	// 1rst attribute buffer : vertices
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
@@ -92,6 +102,20 @@ void updateAnimationLoop()
 	glDisableVertexAttribArray(0);
 	glDisableVertexAttribArray(1);
 	glDisableVertexAttribArray(2);
+
+	//Set the configuration for the sun. Using two sets of shaders, one for the sun only
+	glUseProgram(sunShaderID);
+
+	//Set the matrix as the uniform
+	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
+
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, sun_vertexbuffer);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
+
+	glDrawArrays(GL_TRIANGLES, 0, sun_vertexbuffer_size);
+
+	glDisableVertexAttribArray(0);
 
 	// Swap buffers
 	glfwSwapBuffers(window);
@@ -169,7 +193,7 @@ bool initializeWindow()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// Open a window and create its OpenGL context
-	window = glfwCreateWindow(720, 480, "Testing graphics..", NULL, NULL);
+	window = glfwCreateWindow(1024, 720, "Testing graphics..", NULL, NULL);
 	if (window == NULL) {
 		fprintf(stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n");
 		getchar();
@@ -206,16 +230,27 @@ bool initializeWindow()
 */
 bool initializeVertexbuffer()
 {
-	//Generate vertices for triangles
+	//Generate vertices for map
 	glGenVertexArrays(1, &VertexArrayID);
 	glBindVertexArray(VertexArrayID);
 
-	std::vector<GLfloat> g_vertex_buffer_data = map.getCoords();
-	vertexbuffer_size = g_vertex_buffer_data.size() / 8;
+	std::vector<GLfloat> g_vertex_buffer_data = map.getMapCoords(); //Gets primitives coordinates, UV texture coordinates and normals
+	vertexbuffer_size = g_vertex_buffer_data.size() / 8;	//Divided by 8: 3 p. coords + 2 uv. coords + 3 normals
 
 	glGenBuffers(1, &vertexbuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
 	glBufferData(GL_ARRAY_BUFFER, g_vertex_buffer_data.size() * sizeof(GLfloat), &g_vertex_buffer_data.front(), GL_STATIC_DRAW);
+
+	//Generate vertices for sun
+	glGenVertexArrays(1, &sun_VertexArrayID);
+	glBindVertexArray(sun_VertexArrayID);
+
+	std::vector<GLfloat> g_sun_vertex_buffer_data = map.getSunCoords();	//Gets only the coordinates for the sun
+	sun_vertexbuffer_size = g_sun_vertex_buffer_data.size() / 3;	//3 floats per vertex
+
+	glGenBuffers(1, &sun_vertexbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, sun_vertexbuffer);
+	glBufferData(GL_ARRAY_BUFFER, g_sun_vertex_buffer_data.size() * sizeof(GLfloat), &g_sun_vertex_buffer_data.front(), GL_STATIC_DRAW);
 
 	return true;
 }
@@ -225,8 +260,10 @@ bool cleanupVertexbuffer()
 	// Cleanup VBO
 	glDeleteBuffers(1, &vertexbuffer);
 	glDeleteBuffers(1, &colorbuffer);
-	glDeleteVertexArrays(1, &ColorVAOid);
 	glDeleteVertexArrays(1, &VertexArrayID);
+	glDeleteBuffers(1, &sun_vertexbuffer);
+	glDeleteBuffers(1, &sun_VertexArrayID);
+
 	return true;
 }
 
@@ -235,6 +272,14 @@ bool initializeMVPTransformation()
 	// Get a handle for our "MVP" uniform
 	GLuint MatrixIDnew = glGetUniformLocation(programID, "MVP");
 	MatrixID = MatrixIDnew;
+
+	//Get a handle for the camera position
+	GLuint cameraPosIDNew = glGetUniformLocation(programID, "cameraPos");
+	cameraPosID = cameraPosIDNew;
+
+	// Get a handle for the position of the sun (light source)
+	GLuint sunPosIDNew = glGetUniformLocation(programID, "lightPosition");
+	sunPosID = sunPosIDNew;
 
 	// Projection matrix : 45� Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
 	Projection = glm::perspective(glm::radians(60.0f), 16.0f / 9.0f, 0.1f, 100.0f);
