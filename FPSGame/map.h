@@ -9,15 +9,15 @@ using namespace glm;
 
 class Map {
 private:
-	
+
 	std::vector<glm::vec3> map_vertices;
 	std::vector<glm::vec2> map_uv_vertices;
 	std::vector<glm::vec3> map_normals_vertices;
-	GLuint textureID;
+	GLuint textureID = -1;
 	std::vector<glm::vec3> sun_vertices;
-	glm::vec3 sun_position = vec3(0.0, 5.0, 0.0);
+	glm::vec3 sun_position = vec3(5.0, 30.0, 5.0);
 
-public: 
+public:
 	Map() {};
 	void init(std::string path, std::string texture, std::string sunpath);
 	std::vector<GLfloat> getMapCoords();
@@ -25,7 +25,7 @@ public:
 	GLuint getTextureID();
 	GLuint getMapCoordsVecSize();
 	GLuint getSunCoordsVecSize();
-	GLfloat* getSunPosition();
+	vec3 getSunPosition();
 };
 
 #endif

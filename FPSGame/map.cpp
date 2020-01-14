@@ -16,7 +16,10 @@ void Map::init(std::string mappath, std::string texture, std::string sunpath) {
 	if (!loadOBJ(sunpath.c_str(), sun_vertices)) throw "Error importing OBJ file for the sun";
 
 	//Traslate the sun to its initial position relative to the map
-	for (unsigned int i = 0; i < sun_vertices.size(); i++) sun_vertices.at(i) += sun_position;
+	for (unsigned int i = 0; i < sun_vertices.size(); i++) {
+		sun_vertices.at(i) += sun_position;
+		sun_vertices.at(i) *= 3;
+	}
 
 	if (textureID < 0) throw "Error importing texture.bmp";
 }
@@ -68,7 +71,6 @@ GLuint Map::getSunCoordsVecSize() {
 	return sun_vertices.size();
 }
 
-GLfloat* Map::getSunPosition() {
-	GLfloat result[] = { sun_position[0], sun_position[1], sun_position[2] };
-	return result;
+vec3 Map::getSunPosition() {
+	return sun_position;
 }

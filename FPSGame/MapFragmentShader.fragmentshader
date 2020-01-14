@@ -11,14 +11,28 @@ out vec3 color;
 // Texture
 uniform sampler2D text;
 uniform vec3 cameraPos;
-uniform vec3 lightPosition;
+uniform vec3 lightPos;
+uniform vec2 scr_center;
 
 void main()
 {
+	//VARIABLES FOR THE LANTERN
+	float intensity = 1;							//To increase if needed
+	float radius = 70;
+	float addedIntensity = 1.0;
+	float effectiveDistance = 10.0;
+	float constant = 1.0;
+	float linear = 0.35;
+	float quad = 1.8;
+	float pointX = gl_FragCoord.x - scr_center.x;	// Obtain the values relative to the FragCoord
+	float pointY =gl_FragCoord.y - scr_center.y;
+	float result =pow(pointX, 2) + pow(pointY, 2) - pow(radius, 2);  //Formula for circle
+	vec3 lightPosition = lightPos;
+
 	//LIGHTING FROM THE SUN
 	//Light position and color for diffuse and specular shading
 	vec3 lightColor = normalize(vec3(255.0, 230.0, 180.0));
-	
+
 	//Calculations on light position relative to the fragment's position
 	vec3 norm = normalize(surfaceNormals);
 	vec3 lightDirection = normalize(lightPosition - fragmentPosition);
@@ -41,9 +55,28 @@ void main()
 
 	//Apply ambient intensity to the color of surface
 	vec3 ambient = ambientIntensity * lightColor;
+	
+
+	if (result < 0) {				//points that result lower than 0, are within the circle
+		result = sqrt(abs(result));
+		result = result / radius;
+
+		
+		// Let's apply light fading away from distant objects
+		float attenuation = 1 / (constant + linear * effectiveDistance + quad * pow(effectiveDistance, 2));
+
+		intensity = intensity + (addedIntensity*attenuation);
+
+		//lets simulate light fading away from the center
+		if (result > 0.50) {		
+			intensity = result * intensity;
+		} else {
+			intensity = intensity * 0.50;
+		}
+
+	}
 
 	//Apply the specular and diffuse lightings to the ambient lighting
-	color = (ambient + diffuseLighting + specularLighting) * texture(text, uv_vertex).rgb;
-	
+	color = intensity * (ambient + diffuseLighting + specularLighting) * texture(text, uv_vertex).rgb;
 
 }

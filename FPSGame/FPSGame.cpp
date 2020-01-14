@@ -37,7 +37,7 @@ int main(void)
 	sunShaderID = LoadShaders("SunVertexShader.vertexshader", "SunFragmentShader.fragmentshader");
 
 	//Initialize MVP matrix
-	initializeMVPTransformation();
+	initializeEffects();
 
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 	glEnable(GL_DEPTH_TEST);
@@ -79,8 +79,15 @@ void updateAnimationLoop()
 	GLfloat cameraPosition[] = { curr_x, curr_y, curr_z };
 	glUniform3fv(cameraPosID, 1, &cameraPosition[0]);
 
+	glUniform2fv(scrID, 1, &scr_center[0]);
+/*
+	//Update sun position depending on time
+	double currentTime = glfwGetTime();
+	sunPosition.y = sin(glm::radians(currentTime)) * sunDistance;
+	sunPosition.x = cos(glm::radians(currentTime)) * sunDistance;
+*/
 	//Set the uniform vector for sun position
-	glUniform3fv(sunPosID, 1, &map.getSunPosition()[0]);
+	glUniform3fv(sunPosID, 1, &sunPosition[0]);
 
 	// 1rst attribute buffer : vertices
 	glEnableVertexAttribArray(0);
@@ -107,8 +114,12 @@ void updateAnimationLoop()
 	glUseProgram(sunShaderID);
 
 	//Set the matrix as the uniform
-	glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
-
+	glUniformMatrix4fv(MatrixIDSunShader, 1, GL_FALSE, &MVP[0][0]);
+/*
+	//Update and set the Model matrix of the sun
+	SunModel = glm::translate(mat4(1.0), vec3(sunDistance*glm::radians(currentTime), 0, sunDistance * glm::radians(currentTime)));
+	glUniformMatrix4fv(ModelSunID, 1, GL_FALSE, &SunModel[0][0]);
+*/
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, sun_vertexbuffer);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -173,6 +184,7 @@ void updateMVPLoop() {
 	
 	oldTime = currentTime;
 }
+
 /*
 	INITIALIZE WINDOW
 */
@@ -193,7 +205,7 @@ bool initializeWindow()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 	// Open a window and create its OpenGL context
-	window = glfwCreateWindow(1024, 720, "Testing graphics..", NULL, NULL);
+	window = glfwCreateWindow(1024, 720, "FPS Demo", NULL, NULL);
 	if (window == NULL) {
 		fprintf(stderr, "Failed to open GLFW window. If you have an Intel GPU, they are not 3.3 compatible. Try the 2.1 version of the tutorials.\n");
 		getchar();
@@ -267,19 +279,29 @@ bool cleanupVertexbuffer()
 	return true;
 }
 
-bool initializeMVPTransformation()
+bool initializeEffects()
 {
 	// Get a handle for our "MVP" uniform
 	GLuint MatrixIDnew = glGetUniformLocation(programID, "MVP");
 	MatrixID = MatrixIDnew;
+	MatrixIDSunShader = glGetUniformLocation(sunShaderID, "MVP");
 
 	//Get a handle for the camera position
 	GLuint cameraPosIDNew = glGetUniformLocation(programID, "cameraPos");
 	cameraPosID = cameraPosIDNew;
 
+	// Get a handle for the sun's model transformation
+	ModelSunID = glGetUniformLocation(sunShaderID, "ModelMatrix");
+
+	// Get a handle for the center of the screen's center coordinates
+	scrID = glGetUniformLocation(programID, "scr_center");
+	scr_center = vec2(wwidth / 2, wheight / 2);
+
 	// Get a handle for the position of the sun (light source)
-	GLuint sunPosIDNew = glGetUniformLocation(programID, "lightPosition");
+	GLuint sunPosIDNew = glGetUniformLocation(programID, "lightPos");
 	sunPosID = sunPosIDNew;
+	sunPosition = map.getSunPosition();
+	sunDistance = (GLuint)sunPosition.y;
 
 	// Projection matrix : 45� Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
 	Projection = glm::perspective(glm::radians(60.0f), 16.0f / 9.0f, 0.1f, 100.0f);
