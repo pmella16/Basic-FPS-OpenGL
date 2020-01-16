@@ -1,7 +1,8 @@
 #ifndef FPSGAME_H
 #define FPSGAME_H
 
-#include "map.h"
+#include "Map.h"
+#include "Minimap.h"
 // Include GLEW
 #include <GL/glew.h>
 // Include GLM
@@ -13,6 +14,7 @@ std::string mappath = "textures/mapv1.obj";
 std::string textpath = "textures/texture.bmp";
 std::string sunpath = "textures/sun.obj";
 Map map;
+Minimap minimap;
 
 //Global variables for handling the map's buffers
 GLuint vertexbuffer;
@@ -50,7 +52,7 @@ float pitch = 0.0f; // vertical angle : 0, look at the horizon
 
 GLfloat curr_x = 0;
 GLfloat curr_y = 1.7;
-GLfloat curr_z = 2;
+GLfloat curr_z = 0;
 float speed = 4.0f; // 3 units / second
 float mouseSpeed = 4.0f;
 double xpos, ypos;  //Mouse coordinates
@@ -61,19 +63,41 @@ double oldTime;
 //program ID of the shaders, required for handling the shaders with OpenGL
 GLuint programID;
 
-//Shaders for the sun
+//ID of the shaders for the sun
 GLuint sunShaderID;
 
-// Variables for the shaders and handling the flashlight
+//ID of the shaders for the minimap
+GLuint minimapShaderID;
+
+// Variables for the program shaders and handling the flashlight
 GLuint scrID;
 glm::vec2 scr_center;
+
+// Variables for the minimap shaders
+std::string minimapPath = "textures/map2d.obj";
+GLuint mm_vertexbuffer;
+GLuint mm_VertexArrayID;
+GLuint mm_vertexbuffer_size;
+glm::mat4 MinimapModel;
+GLuint minimapMatrixID;
+float minimapX = 0.6;
+float minimapY = 0.5;
+float minimapScaleX = 0.3;
+float minimapScaleY = 0.37;
+vec2 scrRes;
+GLuint minimapScrResID;
 
 int main( void ); //<<< main function, called at startup
 void updateAnimationLoop(); //<<< updates the animation loop
 void updateMVPLoop(); //<<< Updates the position of the vertices depending on key presses
-bool initializeEffects(); //<<< Generates the model-view-perspective matrix
+void updateMap();
+void updateSun();
+void updateMinimap();
+bool initializeMap(); //<<< initializes the vertex buffer array and binds it OpenGL for the map
+bool initializeSun(); //<<< initializes the vertex buffer array and binds it OpenGL for the sun
+bool initializeMinimap(); //<<< initializes the vertex buffer array and binds it OpenGL for the minimap
+bool initializeMVPMatrix(); //<<< Generates the model-view-perspective matrix
 bool initializeWindow(); //<<< initializes the window using GLFW and GLEW
-bool initializeVertexbuffer(); //<<< initializes the vertex buffer array and binds it OpenGL
 bool cleanupVertexbuffer(); //<<< frees all recources from the vertex buffer
 bool closeWindow(); //<<< Closes the OpenGL window and terminates GLFW
 

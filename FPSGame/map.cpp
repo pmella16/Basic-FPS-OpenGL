@@ -1,4 +1,4 @@
-#include "map.h"
+#include "Map.h"
 
 #include "common/objloader.hpp"
 #include "common/texture.hpp"
@@ -18,7 +18,7 @@ void Map::init(std::string mappath, std::string texture, std::string sunpath) {
 	//Traslate the sun to its initial position relative to the map
 	for (unsigned int i = 0; i < sun_vertices.size(); i++) {
 		sun_vertices.at(i) += sun_position;
-		sun_vertices.at(i) *= 3;
+		sun_vertices.at(i) *= 3; //Scale
 	}
 
 	if (textureID < 0) throw "Error importing texture.bmp";

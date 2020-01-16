@@ -144,7 +144,6 @@ bool loadOBJ(const char* path, std::vector<glm::vec3>& out_vertices) {
 			unsigned int vertexIndex[3], normalIndex[3];
 			int matches = fscanf(file, "%d//%d %d//%d %d//%d\n", &vertexIndex[0], &normalIndex[0], &vertexIndex[1], &normalIndex[1], &vertexIndex[2], &normalIndex[2]);
 			if (matches != 6) {
-				printf("matches: %d\n", matches);
 				printf("File can't be read by our simple parser :-( Try exporting with other options\n");
 				fclose(file);
 				return false;

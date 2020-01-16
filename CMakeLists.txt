@@ -36,7 +36,6 @@ include_directories(
 	external/glfw-3.1.2/include/GLFW/
 	external/glm-0.9.7.1/
 	external/glew-1.13.0/include/
-	external/SOIL/src/
 	.
 )
 
@@ -44,7 +43,6 @@ set(ALL_LIBS
 	${OPENGL_LIBRARY}
 	glfw
 	GLEW_1130
-	SOIL
 )
 
 add_definitions(
@@ -58,13 +56,17 @@ add_definitions(
 # User FPSGame
 add_executable(FPSGame 
 	FPSGame/FPSGame.cpp
-	FPSGame/map.cpp
+	FPSGame/Map.cpp
+	FPSGame/Minimap.cpp
 	FPSGame/FPSGame.h
-	FPSGame/map.h
-	FPSGame/MapFragmentShader.fragmentshader
-	FPSGame/MapVertexShader.vertexshader
-	FPSGame/SunFragmentShader.fragmentshader
-	FPSGame/SunVertexShader.vertexshader
+	FPSGame/Map.h
+	FPSGame/Minimap.h
+	FPSGame/Shaders/MapFragmentShader.fragmentshader
+	FPSGame/Shaders/MapVertexShader.vertexshader
+	FPSGame/Shaders/SunFragmentShader.fragmentshader
+	FPSGame/Shaders/SunVertexShader.vertexshader
+	FPSGame/Shaders/MiniMapFragmentShader.fragmentshader
+	FPSGame/Shaders/MiniMapVertexShader.vertexshader
 	common/shader.cpp
 	common/shader.hpp
 	common/objloader.cpp

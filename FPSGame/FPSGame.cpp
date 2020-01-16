@@ -8,9 +8,6 @@
 #include <glfw3.h>
 GLFWwindow* window;
 
-// Include SOILs
-#include <SOIL.h>
-
 // Include GLM
 #include <glm/gtc/matrix_transform.hpp>
 using namespace glm;
@@ -22,25 +19,31 @@ int main(void)
 	//Initialize window
 	bool windowInitialized = initializeWindow();
 	if (!windowInitialized) return -1;
-
-	// Map initialization		initialize before calling vertex buffer, init loads the obj and .bmp objects and fills the data
-	map.init(mappath, textpath, sunpath);
+	
+	// Create and compile our GLSL program from the shaders
+	programID = LoadShaders("Shaders/MapVertexShader.vertexshader", "Shaders/MapFragmentShader.fragmentshader");
+	// Create and compile sun shader
+	sunShaderID = LoadShaders("Shaders/SunVertexShader.vertexshader", "Shaders/SunFragmentShader.fragmentshader");
+	// Create and compile minimap shader
+	minimapShaderID = LoadShaders("Shaders/MiniMapVertexShader.vertexshader", "Shaders/MiniMapFragmentShader.fragmentshader");
+	
+	// Map initialization
+	bool mapInitialized = initializeMap();
+	if (!mapInitialized) return -1;
 
 	//Initialize vertex buffer
-	bool vertexbufferInitialized = initializeVertexbuffer();
-	if (!vertexbufferInitialized) return -1;
+	bool sunInitialized = initializeSun();
+	if (!sunInitialized) return -1;
 
-	// Create and compile our GLSL program from the shaders
-	programID = LoadShaders("MapVertexShader.vertexshader", "MapFragmentShader.fragmentshader");
+	//Initialize minimap
+	bool minimapInitialized = initializeMinimap();
+	if (!minimapInitialized) return -1;
 
-	// Create and compile sun shader
-	sunShaderID = LoadShaders("SunVertexShader.vertexshader", "SunFragmentShader.fragmentshader");
-
+	
 	//Initialize MVP matrix
-	initializeEffects();
+	initializeMVPMatrix();
 
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-	glEnable(GL_DEPTH_TEST);
 	//start animation loop until escape key is pressed
 	do {
 		// Update position of the camera modifying the view matrix depending on user input
@@ -57,6 +60,8 @@ int main(void)
 	glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
 	cleanupVertexbuffer();
 	glDeleteProgram(programID);
+	glDeleteProgram(sunShaderID);
+	glDeleteProgram(minimapShaderID);
 	closeWindow();
 	return 0;
 }
@@ -68,8 +73,28 @@ void updateAnimationLoop()
 {
 	// Clear the screen
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glEnable(GL_DEPTH_TEST);
 
-	// Use our shader
+	// draw map
+	updateMap();
+
+	// draw sun
+	updateSun();
+
+	glDisable(GL_DEPTH_TEST);
+	// draw minimap
+	updateMinimap();
+
+	// Swap buffers
+	glfwSwapBuffers(window);
+	glfwPollEvents();
+}
+
+/*
+	DRAW THE MAP
+*/
+void updateMap() {
+	// Use our main shader
 	glUseProgram(programID);
 
 	//Set the matrix as the uniform
@@ -80,27 +105,27 @@ void updateAnimationLoop()
 	glUniform3fv(cameraPosID, 1, &cameraPosition[0]);
 
 	glUniform2fv(scrID, 1, &scr_center[0]);
-/*
-	//Update sun position depending on time
-	double currentTime = glfwGetTime();
-	sunPosition.y = sin(glm::radians(currentTime)) * sunDistance;
-	sunPosition.x = cos(glm::radians(currentTime)) * sunDistance;
-*/
+	/*
+		//Update sun position depending on time
+		double currentTime = glfwGetTime();
+		sunPosition.y = sin(glm::radians(currentTime)) * sunDistance;
+		sunPosition.x = cos(glm::radians(currentTime)) * sunDistance;
+	*/
 	//Set the uniform vector for sun position
 	glUniform3fv(sunPosID, 1, &sunPosition[0]);
 
 	// 1rst attribute buffer : vertices
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void *)0);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)0);
 
 	// 2nd attribute buffer: uv vertices of map
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void *)(3 * sizeof(GLfloat)));
+	glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(3 * sizeof(GLfloat)));
 
 	// 3rd attribute buffer: normals vertices
 	glEnableVertexAttribArray(2);
-	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void *)(5 * sizeof(GLfloat)));
+	glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(GLfloat), (void*)(5 * sizeof(GLfloat)));
 
 	// Draw the triangle !
 	glDrawArrays(GL_TRIANGLES, 0, vertexbuffer_size); // 3 indices starting at 0 -> 1 triangle
@@ -109,17 +134,22 @@ void updateAnimationLoop()
 	glDisableVertexAttribArray(0);
 	glDisableVertexAttribArray(1);
 	glDisableVertexAttribArray(2);
+}
 
+/*
+	DRAW THE SUN
+*/
+void updateSun() {
 	//Set the configuration for the sun. Using two sets of shaders, one for the sun only
 	glUseProgram(sunShaderID);
 
 	//Set the matrix as the uniform
 	glUniformMatrix4fv(MatrixIDSunShader, 1, GL_FALSE, &MVP[0][0]);
-/*
-	//Update and set the Model matrix of the sun
-	SunModel = glm::translate(mat4(1.0), vec3(sunDistance*glm::radians(currentTime), 0, sunDistance * glm::radians(currentTime)));
-	glUniformMatrix4fv(ModelSunID, 1, GL_FALSE, &SunModel[0][0]);
-*/
+	/*
+		//Update and set the Model matrix of the sun
+		SunModel = glm::translate(mat4(1.0), vec3(sunDistance*glm::radians(currentTime), 0, sunDistance * glm::radians(currentTime)));
+		glUniformMatrix4fv(ModelSunID, 1, GL_FALSE, &SunModel[0][0]);
+	*/
 	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, sun_vertexbuffer);
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, 0);
@@ -127,10 +157,32 @@ void updateAnimationLoop()
 	glDrawArrays(GL_TRIANGLES, 0, sun_vertexbuffer_size);
 
 	glDisableVertexAttribArray(0);
+}
 
-	// Swap buffers
-	glfwSwapBuffers(window);
-	glfwPollEvents();
+/*
+	DRAW THE MINIMAP
+*/
+void updateMinimap() {
+	//Set the configuration for the sun. Using two sets of shaders, one for the sun only
+	glUseProgram(minimapShaderID);
+
+	//Set the matrix as the uniform
+	glUniformMatrix4fv(minimapMatrixID, 1, GL_FALSE, &MinimapModel[0][0]);
+
+	//Set the screen's resolution as uniform
+	glUniform2fv(minimapScrResID, 1, &scrRes.x);
+
+	glEnableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, mm_vertexbuffer);
+	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void *)0);
+
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(GLfloat), (void *)(3 * sizeof(GLfloat)));
+
+	glDrawArrays(GL_TRIANGLES, 0, mm_vertexbuffer_size);
+
+	glDisableVertexAttribArray(0);
+	glDisableVertexAttribArray(1);
 }
 
 /*
@@ -182,8 +234,131 @@ void updateMVPLoop() {
 	// Our ModelViewProjection : multiplication of our 3 matrices
 	MVP = Projection * View * Model; // Remember, matrix multiplication is the other way around
 	
+
+	//Transform matrix to desired position
+	MinimapModel = glm::translate(mat4(), vec3(minimapX, -minimapY, 0.0));
+	MinimapModel = glm::scale(MinimapModel, vec3(minimapScaleX, minimapScaleY, 0.0));
+
+	//Let's move the minimap accordingly
+	MinimapModel = glm::rotate(MinimapModel, -glm::radians(yaw), vec3(0.0, 0.0, 1.0));
+
+	// Translate to current values
+	MinimapModel = glm::translate(MinimapModel, vec3(-curr_x/20, curr_z / 20, 0.0));
+
 	oldTime = currentTime;
 }
+
+/*
+	INITIALIZE MAP AND MINIMAP
+*/
+bool initializeMap() {
+	//initialize before calling vertex buffer, init loads the objand .bmp objectsand fills the data
+	map.init(mappath, textpath, sunpath);
+
+	//Generate vertices for map
+	glGenVertexArrays(1, &VertexArrayID);
+	glBindVertexArray(VertexArrayID);
+
+	std::vector<GLfloat> g_vertex_buffer_data = map.getMapCoords(); //Gets primitives coordinates, UV texture coordinates and normals
+	vertexbuffer_size = g_vertex_buffer_data.size() / 8;	//Divided by 8: 3 p. coords + 2 uv. coords + 3 normals
+
+	glGenBuffers(1, &vertexbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+	glBufferData(GL_ARRAY_BUFFER, g_vertex_buffer_data.size() * sizeof(GLfloat), &g_vertex_buffer_data.front(), GL_STATIC_DRAW);
+
+	//Get a handle for the camera position
+	cameraPosID = glGetUniformLocation(programID, "cameraPos");
+
+	// Get a handle for the center of the screen's center coordinates
+	scrID = glGetUniformLocation(programID, "scr_center");
+	scr_center = vec2(wwidth / 2, wheight / 2);
+
+	// Get a handle for the position of the sun (light source)
+	sunPosID = glGetUniformLocation(programID, "lightPos");
+	sunPosition = map.getSunPosition();
+	sunDistance = (GLuint)sunPosition.y;
+
+	return true;
+}
+
+/*
+	INITIALIZE SUN
+*/
+bool initializeSun()
+{
+	//Generate vertices for sun
+	glGenVertexArrays(1, &sun_VertexArrayID);
+	glBindVertexArray(sun_VertexArrayID);
+
+	std::vector<GLfloat> g_sun_vertex_buffer_data = map.getSunCoords();	//Gets only the coordinates for the sun
+	sun_vertexbuffer_size = g_sun_vertex_buffer_data.size() / 3;	//3 floats per vertex
+
+	glGenBuffers(1, &sun_vertexbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, sun_vertexbuffer);
+	glBufferData(GL_ARRAY_BUFFER, g_sun_vertex_buffer_data.size() * sizeof(GLfloat), &g_sun_vertex_buffer_data.front(), GL_STATIC_DRAW);
+
+	// Get a handle for the sun's model transformation
+	ModelSunID = glGetUniformLocation(sunShaderID, "sunPosition_modelspace");
+
+	return true;
+}
+
+
+/*
+	INITIALIZE MINIMAP
+*/
+bool initializeMinimap() {
+
+	minimap = Minimap::Minimap(minimapPath);
+
+	// Get a handle for vertex array
+	glGenVertexArrays(1, &mm_VertexArrayID);
+	glBindVertexArray(mm_VertexArrayID);
+
+	std::vector<GLfloat> g_mm_vertex_buffer_data = minimap.getMiniMapCoords();
+
+	mm_vertexbuffer_size = g_mm_vertex_buffer_data.size() / 6;
+	
+	// Bind buffers
+	glGenBuffers(1, &mm_vertexbuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, mm_vertexbuffer);
+	glBufferData(GL_ARRAY_BUFFER, g_mm_vertex_buffer_data.size() * sizeof(GLfloat), &g_mm_vertex_buffer_data.front(), GL_STATIC_DRAW);
+
+	// Get the uniform location for the model matrix
+	minimapMatrixID = glGetUniformLocation(minimapShaderID, "ModelMatrix");
+
+	// Get a handle for the clipping plane
+	minimapScrResID = glGetUniformLocation(minimapShaderID, "screenRes");
+	scrRes.x = wwidth; scrRes.y = wheight;
+
+	return true;
+}
+
+/*
+	INITIALIZE MVP MATRIX
+*/
+bool initializeMVPMatrix()
+{
+	// Get a handle for our "MVP" uniform
+	MatrixID = glGetUniformLocation(programID, "MVP"); 
+	MatrixIDSunShader = glGetUniformLocation(sunShaderID, "MVP");
+
+	// Projection matrix : 45� Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
+	Projection = glm::perspective(glm::radians(60.0f), 16.0f / 9.0f, 0.1f, 100.0f);
+
+	// View Matrix
+	View = glm::translate(mat4(), vec3(-curr_x, -curr_y, -curr_z));
+
+	// Model matrix
+	Model = mat4();
+
+	// Our ModelViewProjection : multiplication of our 3 matrices
+	MVP = Projection * View * Model; // Remember, matrix multiplication is the other way around
+
+	return true;
+
+}
+
 
 /*
 	INITIALIZE WINDOW
@@ -238,35 +413,8 @@ bool initializeWindow()
 }
 
 /*
-	INITIALIZE VERTEX BUFFER
+	CLEANUP VERTEX BUFFERS
 */
-bool initializeVertexbuffer()
-{
-	//Generate vertices for map
-	glGenVertexArrays(1, &VertexArrayID);
-	glBindVertexArray(VertexArrayID);
-
-	std::vector<GLfloat> g_vertex_buffer_data = map.getMapCoords(); //Gets primitives coordinates, UV texture coordinates and normals
-	vertexbuffer_size = g_vertex_buffer_data.size() / 8;	//Divided by 8: 3 p. coords + 2 uv. coords + 3 normals
-
-	glGenBuffers(1, &vertexbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
-	glBufferData(GL_ARRAY_BUFFER, g_vertex_buffer_data.size() * sizeof(GLfloat), &g_vertex_buffer_data.front(), GL_STATIC_DRAW);
-
-	//Generate vertices for sun
-	glGenVertexArrays(1, &sun_VertexArrayID);
-	glBindVertexArray(sun_VertexArrayID);
-
-	std::vector<GLfloat> g_sun_vertex_buffer_data = map.getSunCoords();	//Gets only the coordinates for the sun
-	sun_vertexbuffer_size = g_sun_vertex_buffer_data.size() / 3;	//3 floats per vertex
-
-	glGenBuffers(1, &sun_vertexbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, sun_vertexbuffer);
-	glBufferData(GL_ARRAY_BUFFER, g_sun_vertex_buffer_data.size() * sizeof(GLfloat), &g_sun_vertex_buffer_data.front(), GL_STATIC_DRAW);
-
-	return true;
-}
-
 bool cleanupVertexbuffer()
 {
 	// Cleanup VBO
@@ -279,46 +427,9 @@ bool cleanupVertexbuffer()
 	return true;
 }
 
-bool initializeEffects()
-{
-	// Get a handle for our "MVP" uniform
-	GLuint MatrixIDnew = glGetUniformLocation(programID, "MVP");
-	MatrixID = MatrixIDnew;
-	MatrixIDSunShader = glGetUniformLocation(sunShaderID, "MVP");
-
-	//Get a handle for the camera position
-	GLuint cameraPosIDNew = glGetUniformLocation(programID, "cameraPos");
-	cameraPosID = cameraPosIDNew;
-
-	// Get a handle for the sun's model transformation
-	ModelSunID = glGetUniformLocation(sunShaderID, "ModelMatrix");
-
-	// Get a handle for the center of the screen's center coordinates
-	scrID = glGetUniformLocation(programID, "scr_center");
-	scr_center = vec2(wwidth / 2, wheight / 2);
-
-	// Get a handle for the position of the sun (light source)
-	GLuint sunPosIDNew = glGetUniformLocation(programID, "lightPos");
-	sunPosID = sunPosIDNew;
-	sunPosition = map.getSunPosition();
-	sunDistance = (GLuint)sunPosition.y;
-
-	// Projection matrix : 45� Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
-	Projection = glm::perspective(glm::radians(60.0f), 16.0f / 9.0f, 0.1f, 100.0f);
-
-	// View Matrix
-	View = glm::translate(mat4(), vec3(-curr_x, -curr_y, -curr_z));
-
-	// Model matrix
-	Model = mat4();
-
-	// Our ModelViewProjection : multiplication of our 3 matrices
-	MVP = Projection * View * Model; // Remember, matrix multiplication is the other way around
-
-	return true;
-
-}
-
+/*
+	CLOSE WINDOW
+*/
 bool closeWindow()
 {
 	glfwTerminate();

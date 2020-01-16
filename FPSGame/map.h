@@ -15,7 +15,7 @@ private:
 	std::vector<glm::vec3> map_normals_vertices;
 	GLuint textureID = -1;
 	std::vector<glm::vec3> sun_vertices;
-	glm::vec3 sun_position = vec3(5.0, 30.0, 5.0);
+	glm::vec3 sun_position = vec3(15.0, 15.0, 15.0);
 
 public:
 	Map() {};
