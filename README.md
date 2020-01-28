@@ -4,6 +4,8 @@ This is a program implemented for practical part of the course Computer Graphics
 It consists of a 3D model created using Blender 2.8, imported to a C++ program and rendered using OpenGL 4+. It's a simulation of a
 3D first person shooter with some basic shading and a minimap included.
 
+This is a fork from prof. @Alfred-Franz that contained the red triangle program (the hello world of computer graphics, so I heard) that I used as a template for creating an OpenGL project.
+
 # Goal
 The practical part of the course consisted in creating 3 showcases:
 
