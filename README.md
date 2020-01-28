@@ -8,7 +8,7 @@ It consists of a 3D model created using Blender 2.8, imported to a C++ program a
 The practical part of the course consisted in creating 3 showcases:
 
 * 2D showcase containing some 2D transformations (minimap)
-* Shaders showcase (Light from the moon and flashlight
+* Shaders showcase (Light from the moon and flashlight)
 * 3D showcase containing 3D transformations to move the camera around the map.
 
 The resulting program is a combination of the three
