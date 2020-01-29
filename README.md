@@ -4,6 +4,8 @@ This is a program implemented for practical part of the course Computer Graphics
 It consists of a 3D model created using Blender 2.8, imported to a C++ program and rendered using OpenGL 4+. It's a simulation of a
 3D first person shooter with some basic shading and a minimap included.
 
+The code includes Phong's shading model, a flashlight implementation in the fragment shader, and mouse movement/key presses for calculating the transformation matrixes applied to the 3D scene. It's far from perfect or realistic, but maybe helps other people looking for examples of implementation.
+
 This is a fork from prof. @Alfred-Franz that contained the red triangle program (the hello world of computer graphics, so I heard) that I used as a template for creating an OpenGL project.
 
 # Goal
@@ -25,3 +27,14 @@ Using CMake, select this repo's folder as source and a folder for binaries, conf
 Once in MSV, find the project "FPSGame" and build. 
 
 Execute the .exe in /FPSGame/
+
+## Pictures
+![Example of light of the moon in the scene](https://drive.google.com/open?id=1QyVK9d2SuRmWERnh155tNDBX_nkpcnDL)
+![Example of the flashlight's beam on a wall](https://drive.google.com/open?id=1ZwVckS8q8d1vaGLExB4cJu6s5sospLpU)
+
+## Resources
+* https://learnopengl.com/
+* http://www.opengl-tutorial.org/
+* https://stackoverflow.com/
+* https://www.khronos.org/registry/OpenGL-Refpages/gl4/
+* http://www.shaderific.com/glsl-functions
