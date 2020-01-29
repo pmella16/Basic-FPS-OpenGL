@@ -29,8 +29,8 @@ Once in MSV, find the project "FPSGame" and build.
 Execute the .exe in /FPSGame/
 
 ## Pictures
-![Example of light of the moon in the scene](https://i.ibb.co/qJRRjTS/final-result2.png)
-![Example of the flashlight's beam on a wall](https://i.ibb.co/5KJgVQb/Final-result.png)
+<img src="https://i.ibb.co/qJRRjTS/final-result2.png" alt="Example of light of the moon in the scene" data-canonical-src="https://i.ibb.co/qJRRjTS/final-result2.png" style="max-width:80%;">
+<img src="https://i.ibb.co/5KJgVQb/Final-result.png" alt="Example of the flashlight's beam on a wall" data-canonical-src="https://i.ibb.co/5KJgVQb/Final-result.png" style="max-width:70%;">
 
 ## Resources
 * https://learnopengl.com/
