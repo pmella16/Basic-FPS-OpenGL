@@ -47,6 +47,8 @@ or you can do
 cd FPSGame
 ./FPSGame
 
+https://youtu.be/V8rVA0-XGjw
+
 ## Resources
 * https://learnopengl.com/
 * http://www.opengl-tutorial.org/
