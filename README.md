@@ -32,6 +32,20 @@ Execute the .exe in /FPSGame/
 ![Example of light of the moon in the scene](https://i.ibb.co/qJRRjTS/final-result2.png)
 ![Example of the flashlight's beam on a wall](https://i.ibb.co/5KJgVQb/Final-result.png)
 
+to build in xcode
+
+cd build
+cmake .. -G "Xcode"
+open Showcase.xcodeproj
+
+change target to FPSGame
+
+
+or you can do
+
+cd FPSGame
+./FPSGame
+
 ## Resources
 * https://learnopengl.com/
 * http://www.opengl-tutorial.org/
