@@ -16,7 +16,6 @@ if( CMAKE_BINARY_DIR MATCHES " " )
 endif()
 
 
-
 # Compile external dependencies 
 add_subdirectory (external)
 
