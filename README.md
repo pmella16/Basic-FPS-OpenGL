@@ -34,6 +34,7 @@ Execute the .exe in /FPSGame/
 
 to build in xcode
 
+mkdir build
 cd build
 cmake .. -G "Xcode"
 open Showcase.xcodeproj
