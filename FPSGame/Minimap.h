@@ -17,8 +17,9 @@ private:
 	GLfloat x_pos = (GLfloat) 0.7;
 	GLfloat y_pos = -0.7;
 	GLfloat edgeSize = 0.2;
-	vec3 houseColor = { 0.44, 0.225, 0.03 };
-	vec3 floorColor = { 0.6, 0.6, 0.6 };
+    glm::vec3 houseColor = glm::vec3(0.44f, 0.225f, 0.03f);
+    glm::vec3 floorColor = glm::vec3(0.6f,  0.6f,   0.6f);
+
 
 public:
 	Minimap() {};

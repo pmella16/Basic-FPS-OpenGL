@@ -1,5 +1,6 @@
 # CMake entry point
-cmake_minimum_required (VERSION 3.0)
+cmake_minimum_required (VERSION 3.5)
+
 project (Showcase)
 
 find_package(OpenGL REQUIRED)
@@ -16,11 +17,13 @@ if( CMAKE_BINARY_DIR MATCHES " " )
 endif()
 
 
+
 # Compile external dependencies 
 add_subdirectory (external)
 
 # On Visual 2005 and above, this module can set the debug working directory
-cmake_policy(SET CMP0026 OLD)
+cmake_policy(SET CMP0026 NEW)
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/external/rpavlik-cmake-modules-fe2273")
 include(CreateLaunchers)
 include(MSVCMultipleProcessCompile) # /MP
@@ -79,7 +82,9 @@ target_link_libraries(FPSGame
 )
 # Xcode and Visual working directories
 set_target_properties(FPSGame PROPERTIES XCODE_ATTRIBUTE_CONFIGURATION_BUILD_DIR "${CMAKE_CURRENT_SOURCE_DIR}/FPSGame/")
-create_target_launcher(FPSGame WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/FPSGame/")
+#create_target_launcher(FPSGame WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/FPSGame/")
+
+
 
 SOURCE_GROUP(common REGULAR_EXPRESSION ".*/common/.*" )
 SOURCE_GROUP(shaders REGULAR_EXPRESSION ".*/.*shader$" )

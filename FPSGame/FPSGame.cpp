@@ -309,7 +309,7 @@ bool initializeSun()
 */
 bool initializeMinimap() {
 
-	minimap = Minimap::Minimap(minimapPath);
+    minimap = Minimap(minimapPath);
 
 	// Get a handle for vertex array
 	glGenVertexArrays(1, &mm_VertexArrayID);
